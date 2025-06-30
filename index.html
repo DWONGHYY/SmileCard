@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>积分系统积分兑换计算器</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#f0f9ff',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .fade-in {
+            animation: fadeIn 0.6s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .hover-scale {
+            transition: transform 0.2s ease-in-out;
+        }
+        
+        .hover-scale:hover {
+            transform: scale(1.02);
+        }
+        
+        .card-shadow {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            transition: box-shadow 0.3s ease-in-out;
+        }
+        
+        .card-shadow:hover {
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        
+        .input-focus {
+            transition: all 0.3s ease-in-out;
+        }
+        
+        .input-focus:focus {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.1);
+        }
+    </style>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
+    <!-- 主题切换按钮 -->
+    <div class="fixed top-4 right-4 z-50">
+        <button id="themeToggle" class="p-3 rounded-full bg-white dark:bg-gray-800 shadow-lg hover:shadow-xl transition-all duration-300 hover-scale">
+            <i class="fas fa-moon dark:hidden text-gray-600"></i>
+            <i class="fas fa-sun hidden dark:block text-yellow-400"></i>
+        </button>
+    </div>
+
+    <div class="min-h-screen py-8 px-4">
+        <div class="max-w-6xl mx-auto">
+            <!-- 页面标题 -->
+            <div class="text-center mb-8 fade-in">
+                <h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-4">
+                    <i class="fas fa-calculator text-primary-500 mr-3"></i>
+                    SmilePlay积分系统积分兑换AI计算
+                </h1>
+                <p class="text-lg text-gray-600 dark:text-gray-300">精准计算积分兑换规则，提升门店运营效率</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- 左侧：基础数值输入 -->
+                <div class="space-y-6">
+                    <!-- 基础参数设置 -->
+                    <div class="bg-white dark:bg-gray-800 rounded-xl p-6 card-shadow fade-in">
+                        <h2 class="text-2xl font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
+                            <i class="fas fa-cog text-primary-500 mr-3"></i>
+                            基础参数设置
+                        </h2>
+                        
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">综合币值</label>
+                                <div class="relative">
+                                    <input type="number" id="coinValue" value="0.6" step="0.1" 
+                                           class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:text-white input-focus">
+                                    <span class="absolute right-3 top-3 text-gray-500">元/币</span>
+                                </div>
+                                <p class="text-xs text-gray-500 mt-1">参考范围：0.5-0.8元</p>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">机台出卡币数</label>
+                                <div class="relative">
+                                    <input type="number" id="coinsPerCard" value="6" step="1" 
+                                           class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:text-white input-focus">
+                                    <span class="absolute right-3 top-3 text-gray-500">币/卡</span>
+                                </div>
+                                <p class="text-xs text-gray-500 mt-1">参考范围：6-10币/卡</p>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">门店预设毛利率</label>
+                                <div class="relative">
+                                    <input type="number" id="profitMargin" value="70" step="1" 
+                                           class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:text-white input-focus">
+                                    <span class="absolute right-3 top-3 text-gray-500">%</span>
+                                </div>
+                                <p class="text-xs text-gray-500 mt-1">参考范围：40%-90%</p>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">卡片固定成本</label>
+                                <div class="relative">
+                                    <input type="number" id="cardCost" value="0.39" readonly 
+                                           class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-gray-600 dark:text-white">
+                                    <span class="absolute right-3 top-3 text-gray-500">元/张</span>
+                                </div>
+                                <p class="text-xs text-gray-500 mt-1">固定成本</p>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">礼品零售毛利率</label>
+                                <div class="relative">
+                                    <input type="number" id="giftRetailMargin" value="60" step="1" 
+                                           class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:text-white input-focus">
+                                    <span class="absolute right-3 top-3 text-gray-500">%</span>
+                                </div>
+                                <p class="text-xs text-gray-500 mt-1">参考范围：40%-60%</p>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">机器娃娃礼品综合成本</label>
+                                <div class="relative">
+                                    <input type="number" id="dollCost" value="6" step="1" 
+                                           class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:text-white input-focus">
+                                    <span class="absolute right-3 top-3 text-gray-500">元/个</span>
+                                </div>
+                                <p class="text-xs text-gray-500 mt-1">参考范围：6-9元</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 卡片积分设置 -->
+                    <div class="bg-white dark:bg-gray-800 rounded-xl p-6 card-shadow fade-in">
+                        <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+                            <i class="fas fa-star text-yellow-500 mr-3"></i>
+                            卡片积分设置
+                        </h3>
+                        
+                        <div class="grid grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">R卡积分</label>
+                                <input type="number" id="rCardPoints" value="1" step="1" 
+                                       class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:text-white input-focus">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">SR卡积分</label>
+                                <input type="number" id="srCardPoints" value="3" step="1" 
+                                       class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:text-white input-focus">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">UR卡积分</label>
+                                <input type="number" id="urCardPoints" value="8" step="1" 
+                                       class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:text-white input-focus">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 右侧：计算结果 -->
+                <div class="space-y-6">
+                    <!-- 兑换规则算法 -->
+                    <div class="bg-white dark:bg-gray-800 rounded-xl p-6 card-shadow fade-in">
+                        <h2 class="text-2xl font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
+                            <i class="fas fa-chart-line text-green-500 mr-3"></i>
+                            兑换规则算法
+                        </h2>
+                        
+                        <div class="space-y-4">
+                            <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                                <h4 class="font-medium text-gray-900 dark:text-white mb-2">每卡平均积分值</h4>
+                                <div class="text-2xl font-bold text-primary-600 dark:text-primary-400" id="avgPointsPerCard">2.1</div>
+                                <div class="text-xs text-gray-500 mt-1" id="avgPointsFormula">1×0.7 + 3×0.2 + 8×0.1 = 2.1积分/卡</div>
+                            </div>
+
+                            <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                                <h4 class="font-medium text-gray-900 dark:text-white mb-2">1积分购买力金额(100%返奖率)</h4>
+                                <div class="text-2xl font-bold text-primary-600 dark:text-primary-400" id="pointValue">1.53</div>
+                                <div class="text-xs text-gray-500 mt-1" id="pointValueFormula">(6×0.6-0.39)÷2.1 = 1.53元</div>
+                            </div>
+
+                            <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                                <h4 class="font-medium text-gray-900 dark:text-white mb-2">娃娃出奖所需币数</h4>
+                                <div class="text-2xl font-bold text-primary-600 dark:text-primary-400" id="dollCoins">33</div>
+                                <div class="text-xs text-gray-500 mt-1" id="dollCoinsFormula">6÷(100%-70%)÷0.6 = 33币</div>
+                            </div>
+
+                            <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                                <h4 class="font-medium text-gray-900 dark:text-white mb-2">1个娃娃回收可换积分</h4>
+                                <div class="text-2xl font-bold text-primary-600 dark:text-primary-400" id="dollPoints">13</div>
+                                <div class="text-xs text-gray-500 mt-1" id="dollPointsFormula">33×0.6÷1.53 = 13积分</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 核心功能：积分礼品兑换算法 -->
+                    <div class="bg-gradient-to-r from-primary-500 to-primary-600 rounded-xl p-6 text-white card-shadow fade-in">
+                        <h2 class="text-2xl font-semibold mb-6 flex items-center">
+                            <i class="fas fa-exchange-alt mr-3"></i>
+                            积分礼品兑换算法
+                        </h2>
+                        
+                        <div class="bg-white/10 rounded-lg p-4 mb-4">
+                            <label class="block text-sm font-medium mb-2">礼品成本(门店进货价)</label>
+                            <div class="relative">
+                                <input type="number" id="giftCost" value="12" step="0.01" 
+                                       class="w-full px-4 py-3 border-0 rounded-lg bg-white/20 text-white placeholder-white/70 focus:ring-2 focus:ring-white/50 input-focus">
+                                <span class="absolute right-3 top-3 text-white/70">元</span>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-white/10 rounded-lg p-4">
+                            <h4 class="font-medium mb-2">兑换所需积分</h4>
+                            <div class="text-3xl font-bold" id="requiredPoints">26</div>
+                            <div class="text-sm opacity-80 mt-1" id="requiredPointsFormula">12÷(100%-70%)÷1.53 = 26积分</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 盈亏自检计算 -->
+            <div class="mt-8 bg-white dark:bg-gray-800 rounded-xl p-6 card-shadow fade-in">
+                <h2 class="text-2xl font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
+                    <i class="fas fa-balance-scale text-orange-500 mr-3"></i>
+                    盈亏自检计算
+                </h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                        <h4 class="font-medium text-gray-900 dark:text-white mb-2">兑换平均耗卡数</h4>
+                        <div class="text-xl font-bold text-orange-600 dark:text-orange-400" id="avgCards">12</div>
+                        <div class="text-xs text-gray-500 mt-1" id="avgCardsFormula">26÷2.1 = 12卡</div>
+                    </div>
+
+                    <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                        <h4 class="font-medium text-gray-900 dark:text-white mb-2">卡片消耗成本</h4>
+                        <div class="text-xl font-bold text-orange-600 dark:text-orange-400" id="totalCardCost">4.68</div>
+                        <div class="text-xs text-gray-500 mt-1" id="totalCardCostFormula">12×0.39 = 4.68元</div>
+                    </div>
+
+                    <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                        <h4 class="font-medium text-gray-900 dark:text-white mb-2">总成本</h4>
+                        <div class="text-xl font-bold text-orange-600 dark:text-orange-400" id="totalCost">16.68</div>
+                        <div class="text-xs text-gray-500 mt-1" id="totalCostFormula">12+4.68 = 16.68元</div>
+                    </div>
+
+                    <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                        <h4 class="font-medium text-gray-900 dark:text-white mb-2">总收入</h4>
+                        <div class="text-xl font-bold text-green-600 dark:text-green-400" id="totalRevenue">43.2</div>
+                        <div class="text-xs text-gray-500 mt-1" id="totalRevenueFormula">72×0.6 = 43.2元</div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                    <div class="bg-red-50 dark:bg-red-900/20 rounded-lg p-4 border border-red-200 dark:border-red-800">
+                        <h4 class="font-medium text-red-900 dark:text-red-300 mb-2">返奖率</h4>
+                        <div class="text-2xl font-bold text-red-600 dark:text-red-400" id="returnRate">38.6%</div>
+                        <div class="text-xs text-red-600 dark:text-red-400 mt-1" id="returnRateFormula">16.68÷43.2 = 38.6%</div>
+                        <div class="text-xs text-red-500 mt-1">参考范围：20%-50%</div>
+                    </div>
+
+                    <div class="bg-green-50 dark:bg-green-900/20 rounded-lg p-4 border border-green-200 dark:border-green-800">
+                        <h4 class="font-medium text-green-900 dark:text-green-300 mb-2">实际毛利率</h4>
+                        <div class="text-2xl font-bold text-green-600 dark:text-green-400" id="actualMargin">61.4%</div>
+                        <div class="text-xs text-green-600 dark:text-green-400 mt-1" id="actualMarginFormula">(43.2-16.68)÷43.2 = 61.4%</div>
+                        <div class="text-xs text-green-500 mt-1">预设毛利率：<span id="presetMargin">70%</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 建议零售价计算 -->
+            <div class="mt-8 bg-white dark:bg-gray-800 rounded-xl p-6 card-shadow fade-in">
+                <h2 class="text-2xl font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
+                    <i class="fas fa-tag text-purple-500 mr-3"></i>
+                    建议零售价算法
+                </h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-4 border border-purple-200 dark:border-purple-800">
+                        <h4 class="font-medium text-purple-900 dark:text-purple-300 mb-2">建议零售价</h4>
+                        <div class="text-2xl font-bold text-purple-600 dark:text-purple-400" id="suggestedPrice">30.00</div>
+                        <div class="text-xs text-purple-600 dark:text-purple-400 mt-1" id="suggestedPriceFormula">12÷(1-60%) = 30.00元</div>
+                    </div>
+
+                    <div class="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 border border-blue-200 dark:border-blue-800">
+                        <h4 class="font-medium text-blue-900 dark:text-blue-300 mb-2">积分购买力（零售价基准）</h4>
+                        <div class="text-2xl font-bold text-blue-600 dark:text-blue-400" id="retailPointValue">1.15</div>
+                        <div class="text-xs text-blue-600 dark:text-blue-400 mt-1" id="retailPointValueFormula">30÷26 = 1.15元/积分</div>
+                    </div>
+                </div>
+
+                <div class="mt-6 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg p-4 border border-yellow-200 dark:border-yellow-800">
+                    <h4 class="font-medium text-yellow-900 dark:text-yellow-300 mb-4">积分不足补现金计算</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-yellow-800 dark:text-yellow-300 mb-2">现有积分</label>
+                            <input type="number" id="currentPoints" value="20" step="1" 
+                                   class="w-full px-3 py-2 border border-yellow-300 dark:border-yellow-600 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent dark:bg-yellow-900/30 dark:text-white input-focus">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-yellow-800 dark:text-yellow-300 mb-2">需补现金</label>
+                            <div class="text-xl font-bold text-yellow-600 dark:text-yellow-400" id="cashNeeded">6.90</div>
+                        </div>
+                        <div>
+                            <div class="text-xs text-yellow-600 dark:text-yellow-400 mt-6" id="cashNeededFormula">(26-20)×1.15 = 6.90元</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 作者信息 -->
+            <div class="mt-12 text-center py-8 border-t border-gray-200 dark:border-gray-700 fade-in">
+                <div class="text-gray-600 dark:text-gray-400">
+                    <p class="text-lg font-medium mb-2">作者：SmilePlay品牌运营中心</p>
+                    <p class="text-sm">© 2025 版权所有 | 积分算法解决方案</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 主题切换功能
+        const themeToggle = document.getElementById('themeToggle');
+        const html = document.documentElement;
+
+        // 检查系统主题偏好
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            html.classList.add('dark');
+        }
+
+        themeToggle.addEventListener('click', () => {
+            html.classList.toggle('dark');
+        });
+
+        // 计算函数
+        function calculateAll() {
+            // 获取输入值
+            const coinValue = parseFloat(document.getElementById('coinValue').value) || 0.6;
+            const coinsPerCard = parseInt(document.getElementById('coinsPerCard').value) || 6;
+            const profitMargin = parseFloat(document.getElementById('profitMargin').value) || 70;
+            const cardCost = parseFloat(document.getElementById('cardCost').value) || 0.39;
+            const giftRetailMargin = parseFloat(document.getElementById('giftRetailMargin').value) || 60;
+            const dollCost = parseFloat(document.getElementById('dollCost').value) || 6;
+            const rCardPoints = parseInt(document.getElementById('rCardPoints').value) || 1;
+            const srCardPoints = parseInt(document.getElementById('srCardPoints').value) || 3;
+            const urCardPoints = parseInt(document.getElementById('urCardPoints').value) || 8;
+            const giftCost = parseFloat(document.getElementById('giftCost').value) || 12;
+            const currentPoints = parseInt(document.getElementById('currentPoints').value) || 20;
+
+            // 1. 每卡平均积分值计算
+            const avgPointsPerCard = rCardPoints * 0.7 + srCardPoints * 0.2 + urCardPoints * 0.1;
+            document.getElementById('avgPointsPerCard').textContent = avgPointsPerCard.toFixed(1);
+            document.getElementById('avgPointsFormula').textContent = 
+                `${rCardPoints}×0.7 + ${srCardPoints}×0.2 + ${urCardPoints}×0.1 = ${avgPointsPerCard.toFixed(1)}积分/卡`;
+
+            // 2. 1积分购买力金额计算
+            const pointValue = (coinsPerCard * coinValue - cardCost) / avgPointsPerCard;
+            document.getElementById('pointValue').textContent = pointValue.toFixed(2);
+            document.getElementById('pointValueFormula').textContent = 
+                `(${coinsPerCard}×${coinValue}-${cardCost})÷${avgPointsPerCard.toFixed(1)} = ${pointValue.toFixed(2)}元`;
+
+            // 3. 娃娃出奖所需币数计算
+            const dollCoins = Math.round(dollCost / (1 - profitMargin / 100) / coinValue);
+            document.getElementById('dollCoins').textContent = dollCoins;
+            document.getElementById('dollCoinsFormula').textContent = 
+                `${dollCost}÷(100%-${profitMargin}%)÷${coinValue} = ${dollCoins}币`;
+
+            // 4. 1个娃娃兑换积分计算
+            const dollPoints = Math.round(dollCoins * coinValue / pointValue);
+            document.getElementById('dollPoints').textContent = dollPoints;
+            document.getElementById('dollPointsFormula').textContent = 
+                `${dollCoins}×${coinValue}÷${pointValue.toFixed(2)} = ${dollPoints}积分`;
+
+            // 5. 所需积分计算
+            const requiredPoints = Math.round(giftCost / (1 - profitMargin / 100) / pointValue);
+            document.getElementById('requiredPoints').textContent = requiredPoints;
+            document.getElementById('requiredPointsFormula').textContent = 
+                `${giftCost}÷(100%-${profitMargin}%)÷${pointValue.toFixed(2)} = ${requiredPoints}积分`;
+
+            // 6. 盈亏自检计算
+            const avgCards = Math.round(requiredPoints / avgPointsPerCard);
+            const totalCardCost = avgCards * cardCost;
+            const totalCost = giftCost + totalCardCost;
+            const totalCoins = avgCards * coinsPerCard;
+            const totalRevenue = totalCoins * coinValue;
+            const returnRate = (totalCost / totalRevenue * 100);
+            const actualMargin = ((totalRevenue - totalCost) / totalRevenue * 100);
+
+            document.getElementById('avgCards').textContent = avgCards;
+            document.getElementById('avgCardsFormula').textContent = 
+                `${requiredPoints}÷${avgPointsPerCard.toFixed(1)} = ${avgCards}卡`;
+
+            document.getElementById('totalCardCost').textContent = totalCardCost.toFixed(2);
+            document.getElementById('totalCardCostFormula').textContent = 
+                `${avgCards}×${cardCost} = ${totalCardCost.toFixed(2)}元`;
+
+            document.getElementById('totalCost').textContent = totalCost.toFixed(2);
+            document.getElementById('totalCostFormula').textContent = 
+                `${giftCost}+${totalCardCost.toFixed(2)} = ${totalCost.toFixed(2)}元`;
+
+            document.getElementById('totalRevenue').textContent = totalRevenue.toFixed(2);
+            document.getElementById('totalRevenueFormula').textContent = 
+                `${totalCoins}×${coinValue} = ${totalRevenue.toFixed(2)}元`;
+
+            document.getElementById('returnRate').textContent = returnRate.toFixed(1) + '%';
+            document.getElementById('returnRateFormula').textContent = 
+                `${totalCost.toFixed(2)}÷${totalRevenue.toFixed(2)} = ${returnRate.toFixed(1)}%`;
+
+            document.getElementById('actualMargin').textContent = actualMargin.toFixed(1) + '%';
+            document.getElementById('actualMarginFormula').textContent = 
+                `(${totalRevenue.toFixed(2)}-${totalCost.toFixed(2)})÷${totalRevenue.toFixed(2)} = ${actualMargin.toFixed(1)}%`;
+
+            document.getElementById('presetMargin').textContent = profitMargin + '%';
+
+            // 7. 建议零售价计算
+            const suggestedPrice = giftCost / (1 - giftRetailMargin / 100);
+            const retailPointValue = suggestedPrice / requiredPoints;
+            const cashNeeded = (requiredPoints - currentPoints) * retailPointValue;
+
+            document.getElementById('suggestedPrice').textContent = suggestedPrice.toFixed(2);
+            document.getElementById('suggestedPriceFormula').textContent = 
+                `${giftCost}÷(1-${giftRetailMargin}%) = ${suggestedPrice.toFixed(2)}元`;
+
+            document.getElementById('retailPointValue').textContent = retailPointValue.toFixed(2);
+            document.getElementById('retailPointValueFormula').textContent = 
+                `${suggestedPrice.toFixed(2)}÷${requiredPoints} = ${retailPointValue.toFixed(2)}元/积分`;
+
+            document.getElementById('cashNeeded').textContent = Math.max(0, cashNeeded).toFixed(2);
+            document.getElementById('cashNeededFormula').textContent = 
+                `(${requiredPoints}-${currentPoints})×${retailPointValue.toFixed(2)} = ${Math.max(0, cashNeeded).toFixed(2)}元`;
+        }
+
+        // 添加事件监听器
+        const inputs = document.querySelectorAll('input[type="number"]');
+        inputs.forEach(input => {
+            input.addEventListener('input', calculateAll);
+        });
+
+        // 初始计算
+        calculateAll();
+
+        // 添加淡入动画
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('fade-in');
+                }
+            });
+        });
+
+        document.querySelectorAll('.card-shadow').forEach(el => {
+            observer.observe(el);
+        });
+    </script>
+</body>
+</html>
